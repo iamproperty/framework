@@ -565,6 +565,16 @@ class DatabaseQueryBuilderTest extends TestCase
         $builder->select('*')->from('users')->whereBetween('id', [new Raw(1), new Raw(2)]);
         $this->assertEquals('select * from "users" where "id" between 1 and 2', $builder->toSql());
         $this->assertEquals([], $builder->getBindings());
+
+        $builder = $this->getBuilder();
+        $builder->select('*')->from('users')->whereBetween('id', [[1, 2, 3]]);
+        $this->assertSame('select * from "users" where "id" between ? and ?', $builder->toSql());
+        $this->assertEquals([0 => 1, 1 => 2], $builder->getBindings());
+
+        $builder = $this->getBuilder();
+        $builder->select('*')->from('users')->whereBetween('id', [[1], [2, 3]]);
+        $this->assertSame('select * from "users" where "id" between ? and ?', $builder->toSql());
+        $this->assertEquals([0 => 1, 1 => 2], $builder->getBindings());
     }
 
     public function testBasicOrWheres()
@@ -1046,6 +1056,11 @@ class DatabaseQueryBuilderTest extends TestCase
         $builder->select('*')->from('users')->where([['foo', 1], ['bar', '<', 2]]);
         $this->assertEquals('select * from "users" where ("foo" = ? and "bar" < ?)', $builder->toSql());
         $this->assertEquals([0 => 1, 1 => 2], $builder->getBindings());
+
+        $builder = $this->getBuilder();
+        $builder->select('*')->from('users')->where('id', '=', [[12, 30]]);
+        $this->assertSame('select * from "users" where "id" = ?', $builder->toSql());
+        $this->assertEquals([0 => 12], $builder->getBindings());
     }
 
     public function testNestedWheres()
